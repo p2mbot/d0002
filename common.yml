@@ -1,0 +1,55 @@
+---
+- hosts: all
+  vars:
+    python_ver: 3.5.0
+
+
+  tasks:
+    - debug: msg="hi from common"
+
+    - copy: content='Etc/UTC' dest=/etc/timezone owner=root group=root mode=0644 backup=yes
+    - command: dpkg-reconfigure --frontend noninteractive tzdata
+
+    - apt_repository: repo='deb http://apt.postgresql.org/pub/repos/apt/ trusty-pgdg main' state=present
+    - apt_key: url=https://www.postgresql.org/media/keys/ACCC4CF8.asc state=present
+
+    - apt_repository: repo='deb https://deb.nodesource.com/node_4.x trusty main' state=present
+    - apt_key: url=https://deb.nodesource.com/gpgkey/nodesource.gpg.key state=present
+
+    - apt: upgrade=dist update_cache=yes cache_valid_time=3600
+
+    - apt: name={{item}} state=installed update_cache=yes cache_valid_time=3600
+      with_items:
+           - build-essential
+           - libssl-dev
+           - libbz2-dev
+           - libreadline-dev
+           - libsqlite3-dev
+           - keychain
+           - git
+           - mc
+           - htop
+
+           - postgresql-9.4
+           - nodejs
+
+    - npm: name=bower global=yes
+    - npm: name=forever global=yes
+
+    - get_url: url=https://www.python.org/ftp/python/{{python_ver}}/Python-{{python_ver}}.tgz dest=/tmp/Python-{{python_ver}}.tgz
+    - unarchive: src=/tmp/Python-{{python_ver}}.tgz dest=/tmp/Python-{{python_ver}} copy=no
+    - command: ./configure chdir=/tmp/Python-{{python_ver}}
+    - command: make chdir=/tmp/Python-{{python_ver}}
+    - command: make install chdir=/tmp/Python-{{python_ver}}
+
+
+    - get_url: url=https://bintray.com/artifact/download/business/maven/flyway-commandline-3.2.1-linux-x64.tar.gz dest=/tmp/flyway-commandline-3.2.1-linux-x64.tar.gz
+    - unarchive: src=/tmp/flyway-commandline-3.2.1-linux-x64.tar.gz dest=/usr/local copy=no
+    - file: path=/usr/local/flyway-3.2.1/flyway mode=0755
+    - file: src=/usr/local/flyway-3.2.1/flyway dest=/usr/local/bin/flyway state=link
+
+
+
+
+
+
